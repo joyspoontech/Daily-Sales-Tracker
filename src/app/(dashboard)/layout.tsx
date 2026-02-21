@@ -1,30 +1,34 @@
 import { TopNav, BottomNav, SideNav } from "@/components/navigation";
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { cache } from 'react';
+
+// Cache the profile fetch for the duration of this render
+const getProfile = cache(async () => {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, first_name')
+        .eq('id', user.id)
+        .single()
+    return { user, profile }
+})
 
 export default async function DashboardLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const supabase = await createClient()
+    const data = await getProfile()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    if (!data) {
         redirect('/login')
     }
 
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, first_name')
-        .eq('id', user.id)
-        .single()
-
-    const role = profile?.role || 'sales'
-    const firstName = profile?.first_name || ''
+    const role = data.profile?.role || 'sales'
+    const firstName = data.profile?.first_name || ''
 
     return (
         <>
