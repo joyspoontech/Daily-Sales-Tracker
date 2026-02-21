@@ -12,8 +12,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Daily Sales Tracker | Joyspoon Tech",
-  description: "Track sales leads and tasks effortlessly.",
+  title: "Daily Sales Tracker | Joyspoon",
+  description: "Track daily sales leads, log interactions, and monitor your team's pipeline in real-time.",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
