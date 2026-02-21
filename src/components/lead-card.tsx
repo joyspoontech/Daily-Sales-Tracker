@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { Flame, Snowflake, Building2, Phone, Mail, Link as LinkIcon, X, Pencil } from 'lucide-react'
+import { Flame, Snowflake, Building2, Phone, Mail, Link as LinkIcon, X, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import { deleteLead } from '@/app/(dashboard)/leads/actions'
+import { useRouter } from 'next/navigation'
 
 export type Lead = {
     id: string;
@@ -21,6 +23,21 @@ export type Lead = {
 
 export function LeadCard({ lead }: { lead: Lead }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const router = useRouter()
+
+    const handleDelete = async () => {
+        setIsDeleting(true)
+        const result = await deleteLead(lead.id)
+        if (result?.success) {
+            setIsModalOpen(false)
+            router.refresh()
+        } else {
+            setIsDeleting(false)
+            setIsConfirmingDelete(false)
+        }
+    }
 
     return (
         <>
@@ -181,6 +198,35 @@ export function LeadCard({ lead }: { lead: Lead }) {
                                     )}
                                 </div>
                             )}
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                                {!isConfirmingDelete ? (
+                                    <button
+                                        onClick={() => setIsConfirmingDelete(true)}
+                                        className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors w-full"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete Lead
+                                    </button>
+                                ) : (
+                                    <div className="flex items-center gap-3 bg-red-50 rounded-lg p-3">
+                                        <p className="text-sm text-red-700 font-medium flex-1">Delete this lead permanently?</p>
+                                        <button
+                                            onClick={() => setIsConfirmingDelete(false)}
+                                            className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded transition-colors"
+                                            disabled={isDeleting}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            disabled={isDeleting}
+                                            className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors disabled:opacity-60"
+                                        >
+                                            {isDeleting ? 'Deleting…' : 'Yes, Delete'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
